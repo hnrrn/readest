@@ -1,7 +1,7 @@
 name: Build Readest Windows App
 
 on:
-  workflow_dispatch: # 仅支持手动触发
+  workflow_dispatch:
     inputs:
       create_release:
         description: '构建完成后是否自动发布 Release？'
@@ -10,14 +10,13 @@ on:
         default: false
 
 jobs:
-  # ================= Windows 构建任务 =================
   build-windows:
     runs-on: windows-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          submodules: recursive # Readest 含有子模块依赖，需完整拉取
+          submodules: recursive
 
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -52,12 +51,19 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
+      # 关键修复 1：明确指定 shell: bash，让 Linux 命令在 Windows 也能正常运行
+      # 关键修复 2：移除强行跳过错误的指令，如果搬运文件失败，CI 会在此处直接报错而不是留到 Next.js 打包阶段
       - name: Install Dependencies & Setup Vendors
+        shell: bash
         run: |
           pnpm install
-          pnpm --filter @readest/readest-app setup-vendors || pnpm --filter @readest/readest-app setup-pdfjs || echo "Skip vendor setup"
+          pnpm --filter @readest/readest-app setup-vendors || pnpm --filter @readest/readest-app setup-pdfjs
 
+      # 增加 NODE_OPTIONS 防止 Webpack 在 Windows 构件机上打包崩溃 (OOM)
       - name: Build Windows App via Tauri
+        shell: bash
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
         run: |
           pnpm tauri build --bundles msi
 
@@ -66,3 +72,27 @@ jobs:
         with:
           name: readest-windows-msi
           path: apps/readest-app/src-tauri/target/release/bundle/msi/*.msi
+
+  create-release:
+    needs: build-windows
+    if: ${{ github.event.inputs.create_release == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download Windows Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: readest-windows-msi
+          path: ./release-artifacts
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./release-artifacts/**/*
+          tag_name: manual-build-${{ github.run_id }}
+          name: Manual Build ${{ github.run_id }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
