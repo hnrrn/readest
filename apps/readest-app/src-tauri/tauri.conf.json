@@ -112,8 +112,7 @@
         "mimeType": "application/pdf",
         "role": "Viewer"
       }
-    ],
-    "createUpdaterArtifacts": true
+    ]
   },
   "plugins": {
     "fs": {
