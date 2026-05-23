@@ -55,8 +55,6 @@ jobs:
           pnpm tauri info
           
       - name: Build Windows App via Tauri
-        env:
-          TAURI_SIGNING_PRIVATE_KEY: "ZXhlbXBsZWFvZmFiYXNlNjRzdHJpZ250aGF0aXNmb3JtYXR0ZWRjb3JyZWN0bHl0b2J5cGFzc3RhdXJpY29tcGlsZXJ2YWxpZGF0aW9uY2hlY2tz"
         run: |
           pnpm tauri build --bundles nsis
       - name: Upload Windows Artifact
