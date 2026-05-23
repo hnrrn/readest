@@ -1,13 +1,9 @@
-name: Build Readest Windows App
+name: Build Readest Windows App exe
 
 on:
-  workflow_dispatch: # 仅支持手动触发
-    inputs:
-      create_release:
-        description: '构建完成后是否自动发布 Release？'
-        required: true
-        type: boolean
-        default: false
+  push:
+    branches:
+      - open_ai_compat_tts 
 
 jobs:
   # ================= Windows 构建任务 =================
