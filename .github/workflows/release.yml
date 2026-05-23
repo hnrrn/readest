@@ -60,10 +60,9 @@ jobs:
           
       - name: Build Windows App via Tauri
         run: |
-          pnpm tauri build --bundles msi
-
+          pnpm tauri build --bundles nsis
       - name: Upload Windows Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: readest-windows-msi
-          path: apps/readest-app/src-tauri/target/release/bundle/msi/*.msi
+          name: readest-windows-exe
+          path: apps/readest-app/src-tauri/target/release/bundle/nsis/*.exe
