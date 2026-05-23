@@ -149,8 +149,6 @@
       "desktop": {
         "schemes": ["readest"]
       }
-    },
-    "updater": {
     }
   }
 }
